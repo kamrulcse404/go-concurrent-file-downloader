@@ -10,7 +10,13 @@ func HandleDownload(args []string) error {
 		return fmt.Errorf("missing download URL")
 	}
 
-	downloadURL := args[2]
+	downloadUrls := args[2:]
 
-	return services.DownloadFile(downloadURL)
+	for _, downloadUrl := range downloadUrls {
+		if err := services.DownloadFile(downloadUrl); err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
