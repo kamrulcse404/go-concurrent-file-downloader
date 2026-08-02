@@ -57,6 +57,7 @@ func DownloadFile(rawUrl string) error {
 	}
 
 	fmt.Println("Downloaded:", filePath)
+	fmt.Println("Single File Downloader (v1)")
 
 	return nil
 }
