@@ -1,6 +1,7 @@
 package commands
 
 import (
+	"concurrentfiledownloader/services"
 	"fmt"
 )
 
@@ -11,5 +12,5 @@ func HandleDownload(args []string) error {
 
 	downloadURL := args[2]
 
-	return nil
+	return services.DownloadFile(downloadURL)
 }
