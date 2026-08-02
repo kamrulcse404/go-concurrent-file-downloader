@@ -8,13 +8,16 @@ import (
 	"os"
 	"path"
 	"path/filepath"
+	"sync"
 )
 
 const (
 	dataDir = "downloads"
 )
 
-func DownloadFile(rawUrl string) error {
+func DownloadFile(rawUrl string, wg *sync.WaitGroup) error {
+	defer wg.Done()
+
 	resp, err := http.Get(rawUrl)
 
 	if err != nil {

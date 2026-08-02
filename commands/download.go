@@ -3,20 +3,23 @@ package commands
 import (
 	"concurrentfiledownloader/services"
 	"fmt"
+	"sync"
 )
 
 func HandleDownload(args []string) error {
+	var wg sync.WaitGroup
 	if len(args) < 3 {
 		return fmt.Errorf("missing download URL")
 	}
 
-	downloadUrls := args[2:]
+	downloadURLs := args[2:]
 
-	for _, downloadUrl := range downloadUrls {
-		if err := services.DownloadFile(downloadUrl); err != nil {
-			return err
-		}
+	for _, downloadURL := range downloadURLs {
+		wg.Add(1)
+		go services.DownloadFile(downloadURL, &wg)
 	}
+
+	wg.Wait()
 
 	return nil
 }
