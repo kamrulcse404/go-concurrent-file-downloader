@@ -7,6 +7,11 @@ import (
 	"net/url"
 	"os"
 	"path"
+	"path/filepath"
+)
+
+const (
+	dataDir = "downloads"
 )
 
 func DownloadFile(rawUrl string) error {
@@ -24,7 +29,7 @@ func DownloadFile(rawUrl string) error {
 	u, err := url.Parse(rawUrl)
 
 	if err != nil {
-		return fmt.Errorf("download failed: %s", err)
+		return fmt.Errorf("parse url: %w", err)
 	}
 
 	fileName := path.Base(u.Path)
@@ -32,7 +37,19 @@ func DownloadFile(rawUrl string) error {
 		fileName = "downloaded_file"
 	}
 
-	file, err := os.Create(fileName)
+	_, err = os.Stat(dataDir)
+	if os.IsNotExist(err) {
+		err = os.MkdirAll(dataDir, 0755)
+		if err != nil {
+			return err
+		}
+	} else if err != nil {
+		return err
+	}
+
+	filePath := filepath.Join(dataDir, fileName)
+
+	file, err := os.Create(filePath)
 	if err != nil {
 		return err
 	}
@@ -45,7 +62,7 @@ func DownloadFile(rawUrl string) error {
 		return err
 	}
 
-	fmt.Printf("Downloaded: %s", fileName)
+	fmt.Println("Downloaded:", fileName)
 
 	return nil
 }
