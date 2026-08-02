@@ -37,13 +37,7 @@ func DownloadFile(rawUrl string) error {
 		fileName = "downloaded_file"
 	}
 
-	_, err = os.Stat(dataDir)
-	if os.IsNotExist(err) {
-		err = os.MkdirAll(dataDir, 0755)
-		if err != nil {
-			return err
-		}
-	} else if err != nil {
+	if err = ensureDownloadDir(dataDir); err != nil {
 		return err
 	}
 
@@ -62,7 +56,7 @@ func DownloadFile(rawUrl string) error {
 		return err
 	}
 
-	fmt.Println("Downloaded:", fileName)
+	fmt.Println("Downloaded:", filePath)
 
 	return nil
 }
