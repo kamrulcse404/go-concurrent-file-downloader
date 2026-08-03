@@ -12,14 +12,15 @@ import (
 )
 
 const (
-	dataDir = "downloads"
+	dataDir    = "downloads"
+	timeFormat = "20060102_150405"
 )
 
-func DownloadFile(rawUrl string) error {
+var client = &http.Client{
+	Timeout: 30 * time.Second,
+}
 
-	client := &http.Client{
-		Timeout: 30 * time.Second,
-	}
+func DownloadFile(rawUrl string) error {
 	resp, err := client.Get(rawUrl)
 
 	if err != nil {
@@ -28,7 +29,7 @@ func DownloadFile(rawUrl string) error {
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
-		return fmt.Errorf("download failed: %s", resp.Status)
+		return fmt.Errorf("%s: unexpected status %s", rawUrl, resp.Status)
 	}
 
 	u, err := url.Parse(rawUrl)
@@ -39,9 +40,13 @@ func DownloadFile(rawUrl string) error {
 	}
 
 	fileName := path.Base(u.Path)
+
 	if fileName == "." || fileName == "/" {
 		fileName = "downloaded_file"
 	}
+
+	timestamp := time.Now().Format(timeFormat)
+	fileName = fmt.Sprintf("%s_%s", timestamp, fileName)
 
 	if err = ensureDownloadDir(dataDir); err != nil {
 		return fmt.Errorf("%s: %w", rawUrl, err)
@@ -51,16 +56,13 @@ func DownloadFile(rawUrl string) error {
 
 	file, err := os.Create(filePath)
 	if err != nil {
-		return fmt.Errorf("%s: %w", rawUrl, err)
+		return fmt.Errorf("create file %s: %w", filePath, err)
 	}
 
 	defer file.Close()
 
-	_, err = io.Copy(file, resp.Body)
-
-	if err != nil {
-		return fmt.Errorf("%s: %w", rawUrl, err)
-
+	if _, err = io.Copy(file, resp.Body); err != nil {
+		return fmt.Errorf("copy response body to %s: %w", filePath, err)
 	}
 
 	fmt.Println("Downloaded:", filePath)
