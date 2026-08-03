@@ -8,6 +8,7 @@ import (
 	"os"
 	"path"
 	"path/filepath"
+	"time"
 )
 
 const (
@@ -16,10 +17,13 @@ const (
 
 func DownloadFile(rawUrl string) error {
 
-	resp, err := http.Get(rawUrl)
+	client := &http.Client{
+		Timeout: 30 * time.Second,
+	}
+	resp, err := client.Get(rawUrl)
 
 	if err != nil {
-		return err
+		return fmt.Errorf("%s: %w", rawUrl, err)
 	}
 	defer resp.Body.Close()
 
@@ -35,19 +39,19 @@ func DownloadFile(rawUrl string) error {
 	}
 
 	fileName := path.Base(u.Path)
-	if fileName == "/" || fileName == "." {
+	if fileName == "." || fileName == "/" {
 		fileName = "downloaded_file"
 	}
 
 	if err = ensureDownloadDir(dataDir); err != nil {
-		return err
+		return fmt.Errorf("%s: %w", rawUrl, err)
 	}
 
 	filePath := filepath.Join(dataDir, fileName)
 
 	file, err := os.Create(filePath)
 	if err != nil {
-		return err
+		return fmt.Errorf("%s: %w", rawUrl, err)
 	}
 
 	defer file.Close()
@@ -55,7 +59,7 @@ func DownloadFile(rawUrl string) error {
 	_, err = io.Copy(file, resp.Body)
 
 	if err != nil {
-		return err
+		return fmt.Errorf("%s: %w", rawUrl, err)
 
 	}
 

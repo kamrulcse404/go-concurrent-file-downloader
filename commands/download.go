@@ -28,10 +28,16 @@ func HandleDownload(args []string) error {
 	wg.Wait()
 	close(ch)
 
+	var hasError bool
 	for err := range ch {
 		if err != nil {
-			return err
+			fmt.Println("Error:", err)
+			hasError = true
 		}
+	}
+
+	if hasError {
+		return fmt.Errorf("one or more downloads failed")
 	}
 
 	return nil
