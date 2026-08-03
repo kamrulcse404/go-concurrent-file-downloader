@@ -21,6 +21,13 @@ var client = &http.Client{
 }
 
 func DownloadFile(rawUrl string) error {
+	u, err := url.ParseRequestURI(rawUrl)
+
+	if err != nil {
+		return fmt.Errorf("%s parse url: %w", rawUrl, err)
+
+	}
+
 	resp, err := client.Get(rawUrl)
 
 	if err != nil {
@@ -30,13 +37,6 @@ func DownloadFile(rawUrl string) error {
 
 	if resp.StatusCode != http.StatusOK {
 		return fmt.Errorf("%s: unexpected status %s", rawUrl, resp.Status)
-	}
-
-	u, err := url.ParseRequestURI(rawUrl)
-
-	if err != nil {
-		return fmt.Errorf("parse url: %w", err)
-
 	}
 
 	fileName := path.Base(u.Path)
@@ -65,6 +65,6 @@ func DownloadFile(rawUrl string) error {
 		return fmt.Errorf("copy response body to %s: %w", filePath, err)
 	}
 
-	fmt.Println("Downloaded:", filePath)
+	fmt.Printf("Downloaded %s -> %s\n", rawUrl, filePath)
 	return nil
 }
