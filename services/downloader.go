@@ -8,34 +8,30 @@ import (
 	"os"
 	"path"
 	"path/filepath"
-	"sync"
 )
 
 const (
 	dataDir = "downloads"
 )
 
-func DownloadFile(rawUrl string, wg *sync.WaitGroup, ch chan error) {
-	defer wg.Done()
+func DownloadFile(rawUrl string) error {
 
 	resp, err := http.Get(rawUrl)
 
 	if err != nil {
-		ch <- err
-		return
+		return err
 	}
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
-		ch <- fmt.Errorf("download failed: %s", resp.Status)
-		return
+		return fmt.Errorf("download failed: %s", resp.Status)
 	}
 
 	u, err := url.Parse(rawUrl)
 
 	if err != nil {
-		ch <- fmt.Errorf("parse url: %w", err)
-		return
+		return fmt.Errorf("parse url: %w", err)
+
 	}
 
 	fileName := path.Base(u.Path)
@@ -44,16 +40,14 @@ func DownloadFile(rawUrl string, wg *sync.WaitGroup, ch chan error) {
 	}
 
 	if err = ensureDownloadDir(dataDir); err != nil {
-		ch <- err
-		return
+		return err
 	}
 
 	filePath := filepath.Join(dataDir, fileName)
 
 	file, err := os.Create(filePath)
 	if err != nil {
-		ch <- err
-		return
+		return err
 	}
 
 	defer file.Close()
@@ -61,9 +55,10 @@ func DownloadFile(rawUrl string, wg *sync.WaitGroup, ch chan error) {
 	_, err = io.Copy(file, resp.Body)
 
 	if err != nil {
-		ch <- err
-		return
+		return err
+
 	}
 
 	fmt.Println("Downloaded:", filePath)
+	return nil
 }

@@ -17,7 +17,12 @@ func HandleDownload(args []string) error {
 
 	for _, downloadURL := range downloadURLs {
 		wg.Add(1)
-		go services.DownloadFile(downloadURL, &wg, ch)
+		go func(downloadURL string) {
+			defer wg.Done()
+			if err := services.DownloadFile(downloadURL); err != nil {
+				ch <- err
+			}
+		}(downloadURL)
 	}
 
 	wg.Wait()
