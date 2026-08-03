@@ -32,7 +32,7 @@ func DownloadFile(rawUrl string) error {
 		return fmt.Errorf("%s: unexpected status %s", rawUrl, resp.Status)
 	}
 
-	u, err := url.Parse(rawUrl)
+	u, err := url.ParseRequestURI(rawUrl)
 
 	if err != nil {
 		return fmt.Errorf("parse url: %w", err)
