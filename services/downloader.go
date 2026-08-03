@@ -25,7 +25,6 @@ func DownloadFile(rawUrl string) error {
 
 	if err != nil {
 		return fmt.Errorf("%s parse url: %w", rawUrl, err)
-
 	}
 
 	resp, err := client.Get(rawUrl)
