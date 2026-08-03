@@ -13,13 +13,21 @@ func HandleDownload(args []string) error {
 	}
 
 	downloadURLs := args[2:]
+	ch := make(chan error, len(downloadURLs))
 
 	for _, downloadURL := range downloadURLs {
 		wg.Add(1)
-		go services.DownloadFile(downloadURL, &wg)
+		go services.DownloadFile(downloadURL, &wg, ch)
 	}
 
 	wg.Wait()
+	close(ch)
+
+	for err := range ch {
+		if err != nil {
+			return err
+		}
+	}
 
 	return nil
 }
