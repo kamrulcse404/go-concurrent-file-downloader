@@ -1,9 +1,12 @@
 package commands
 
 import (
-	"concurrentfiledownloader/services"
 	"fmt"
 	"sync"
+)
+
+const (
+	workerCount = 5
 )
 
 func HandleDownload(args []string) error {
@@ -14,16 +17,24 @@ func HandleDownload(args []string) error {
 
 	downloadURLs := args[2:]
 	ch := make(chan error, len(downloadURLs))
+	jobs := make(chan string)
+
+	count := workerCount
+
+	if len(downloadURLs) < count {
+		count = len(downloadURLs)
+	}
+
+	for i := 0; i < count; i++ {
+		wg.Add(1)
+		go worker(&wg, jobs, ch)
+	}
 
 	for _, downloadURL := range downloadURLs {
-		wg.Add(1)
-		go func(downloadURL string) {
-			defer wg.Done()
-			if err := services.DownloadFile(downloadURL); err != nil {
-				ch <- err
-			}
-		}(downloadURL)
+		jobs <- downloadURL
 	}
+
+	close(jobs)
 
 	wg.Wait()
 	close(ch)
