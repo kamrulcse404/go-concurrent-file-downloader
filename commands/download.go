@@ -1,12 +1,9 @@
 package commands
 
 import (
+	"concurrentfiledownloader/config"
 	"fmt"
 	"sync"
-)
-
-const (
-	workerCount = 5
 )
 
 func HandleDownload(args []string) error {
@@ -19,7 +16,7 @@ func HandleDownload(args []string) error {
 	ch := make(chan error, len(downloadURLs))
 	jobs := make(chan string)
 
-	count := workerCount
+	count := config.WorkerCount
 
 	if len(downloadURLs) < count {
 		count = len(downloadURLs)

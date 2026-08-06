@@ -1,6 +1,7 @@
 package services
 
 import (
+	"concurrentfiledownloader/config"
 	"fmt"
 	"io"
 	"net/http"
@@ -11,13 +12,8 @@ import (
 	"time"
 )
 
-const (
-	dataDir    = "downloads"
-	timeFormat = "20060102_150405"
-)
-
 var client = &http.Client{
-	Timeout: 30 * time.Second,
+	Timeout: config.HTTPTimeout,
 }
 
 func DownloadFile(rawUrl string) error {
@@ -44,14 +40,14 @@ func DownloadFile(rawUrl string) error {
 		fileName = "downloaded_file"
 	}
 
-	timestamp := time.Now().Format(timeFormat)
+	timestamp := time.Now().Format(config.TimeFormat)
 	fileName = fmt.Sprintf("%s_%s", timestamp, fileName)
 
-	if err = ensureDownloadDir(dataDir); err != nil {
+	if err = ensureDownloadDir(config.DataDir); err != nil {
 		return fmt.Errorf("%s: %w", rawUrl, err)
 	}
 
-	filePath := filepath.Join(dataDir, fileName)
+	filePath := filepath.Join(config.DataDir, fileName)
 
 	file, err := os.Create(filePath)
 	if err != nil {
